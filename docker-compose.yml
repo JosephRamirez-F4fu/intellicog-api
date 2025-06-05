@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: intellicog_postgres
+    environment:
+      POSTGRES_USER: intellicog_user
+      POSTGRES_PASSWORD: intellicog_pass
+      POSTGRES_DB: intellicog_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
