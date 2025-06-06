@@ -2,6 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from .users.models import User
+from .auth.models import RefreshToken, PasswordResetCodes
 from .patients.models import Patient, PatientComorbilites
 from .evaluations.models import Evaluation,ClinicData,ClinicResults,MRIImage
 

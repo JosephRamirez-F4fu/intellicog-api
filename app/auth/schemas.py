@@ -18,7 +18,6 @@ class UserForRecover(BaseModel):
 
 class CodeRecovery(BaseModel):
     code: str
-    email: str
 
 class TokenData(BaseModel):
     sub: str

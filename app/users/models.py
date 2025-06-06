@@ -8,3 +8,5 @@ class User(DraftModel, table=True):
     email: str = Field(unique=True, max_length=100)
     password: str = Field(max_length=100)
     patients: List["Patient"] = Relationship(back_populates="user")
+    refresh_tokens: List["RefreshToken"] = Relationship(back_populates="user")
+    password_reset_codes : List["PasswordResetCodes"] = Relationship(back_populates="user")

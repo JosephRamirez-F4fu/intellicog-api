@@ -1,23 +1,13 @@
 from pydantic import BaseModel
 
-class UserBase(BaseModel):
-    name : str
-    last_name: str
+
+class UserForUpdate(BaseModel):
+    name: str | None = None
+    last_name: str | None = None
+    password: str | None = None
 
 
-class UserForCreate(UserBase):
-    email: str
-    password: str
-    verify_password: str 
-
-class UserForLogin(BaseModel):
-    email: str
-    password: str
-
-class UserForRecover(BaseModel):
-    email: str
-    password: str
-    verify_password: str
-
-
-
+class UserForChangePassword(BaseModel):
+    old_password: str
+    new_password: str
+    verify_new_password: str

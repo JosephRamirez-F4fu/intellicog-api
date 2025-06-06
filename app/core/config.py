@@ -14,7 +14,7 @@ config = {
     "S3_REGION_NAME": config.get("S3_REGION_NAME", "us-west-2"),
     "S3_ACCESS_KEY_ID": config.get("S3_ACCESS_KEY_ID", "your-access-key-id"),
     "ACCESS_TOKEN_EXPIRE_MINUTES": int(config.get("ACCESS_TOKEN_EXPIRE_MINUTES", 30)),
-    "REFRESH_TOKEN_EXPIRE_MINUTES": int(config.get("REFRESH_TOKEN_EXPIRE_MINUTES", 60)),
+    "REFRESH_TOKEN_EXPIRE_HOURS": int(config.get("REFRESH_TOKEN_EXPIRE_HOURS", 3)),
     "ALGORITHM": config.get("ALGORITHM", "HS256")
 }
 
