@@ -1,17 +1,18 @@
-from .models import User
-from ..utils import CRUDDraft
-from sqlmodel import Session
-from .schemas import UserForChangePassword, UserForUpdate
 from ..auth.utils import verify_password, hash_password
+from ..utils import CRUDDraft
+from .models import User
+from .schemas import UserForChangePassword, UserForUpdate
 from fastapi import HTTPException, status
+from sqlmodel import Session
 
-class UserService():
+
+class UserService:
     def __init__(self, session: Session):
         self.session = session
         self.crud = CRUDDraft(self.session)
-   
+
     def update_user(self, user_id: int, user_data: UserForUpdate) -> User:
-        user:User | None = self.crud.get(user_id, User)
+        user: User | None = self.crud.get(user_id, User)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -23,24 +24,29 @@ class UserService():
                 detail="Incorrect password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        if user_data.name is  None:
-            user.name 
+        if user_data.name is None:
+            user.name = user.name
         if user_data.last_name is None:
-            user_data.last_name = user.last_name
-        
+            user.last_name = user.last_name
+        user_data.password = user.password  # Keep the existing password
+
         return self.crud.update(user_id, User, user_data)
-    
+
     def delete_user(self, user_id: int) -> User:
         return self.crud.delete(user_id, User)
-    
-    def get_user(self, user_id: int) -> User | None: 
+
+    def get_user(self, user_id: int) -> User | None:
         return self.crud.get(user_id, User)
-    
+
     def change_password(self, user_id: int, user_data: User) -> User:
-        user = self.crud.get(user_id, UserForChangePassword)
+        user = self.crud.get(user_id, User)
         if not user:
             return None
-        if user_data.old_password is None or user_data.new_password is None or user_data.verify_new_password is None:
+        if (
+            user_data.old_password is None
+            or user_data.new_password is None
+            or user_data.verify_new_password is None
+        ):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Old password, new password and verify new password are required",
@@ -58,7 +64,3 @@ class UserService():
             )
         user.password = hash_password(user_data.new_password)
         return self.crud.update(user_id, User, user)
-    
-
-    
-   
