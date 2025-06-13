@@ -10,6 +10,7 @@ from .users.models import User
 from .users.router import user_router
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 import os
 
 app = FastAPI(
@@ -33,6 +34,21 @@ if env == "development":
 
 elif env == "production":
     ...
+
+origins = [
+    "http://localhost:4200",  # Ejemplo: frontend local
+    "https://your-production-domain.com",  # Dominio de producción
+    "*",  # Permitir todos los orígenes (no recomendado en producción)
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # Permitir todos los métodos HTTP
+    allow_headers=["*"],  # Permitir todos los encabezados
+)
+
 
 app.include_router(auth_router)
 app.include_router(user_router)
