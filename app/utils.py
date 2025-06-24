@@ -14,6 +14,9 @@ class DraftModel(SQLModel):
         sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
     )
 
+    class Config:
+        from_attributes = True
+
 
 class CRUDDraft:
 

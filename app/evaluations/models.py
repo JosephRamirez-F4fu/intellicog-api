@@ -25,38 +25,10 @@ class Classification(PyEnum):
 
 
 class ClinicData(DraftModel, table=True):
-    mmse: Optional[int] = Field(default=None, nullable=True)
-    moca: Optional[int] = Field(default=None, nullable=True)
-    clock_drawing_test: Optional[int] = Field(default=None, nullable=True)
-
-    sodium: Optional[Decimal] = Field(
-        default=None, nullable=True, max_digits=6, decimal_places=3
-    )
-    potassium: Optional[Decimal] = Field(
-        default=None, nullable=True, max_digits=6, decimal_places=3
-    )
-    creatinine: Optional[Decimal] = Field(
-        default=None, nullable=True, max_digits=6, decimal_places=3
-    )
-    hemoglobin: Optional[Decimal] = Field(
-        default=None, nullable=True, max_digits=6, decimal_places=3
-    )
-    c_reactive_protein: Optional[Decimal] = Field(
-        default=None, nullable=True, max_digits=6, decimal_places=3
-    )
-    vitamin_b12: Optional[Decimal] = Field(
-        default=None, nullable=True, max_digits=6, decimal_places=3
-    )
     vitamin_d: Optional[Decimal] = Field(
         default=None, nullable=True, max_digits=6, decimal_places=3
     )
-    uric_acid: Optional[Decimal] = Field(
-        default=None, nullable=True, max_digits=6, decimal_places=3
-    )
-    glycated_hemoglobin: Optional[Decimal] = Field(
-        default=None, nullable=True, max_digits=6, decimal_places=3
-    )
-    thyrotropic_hormone: Optional[Decimal] = Field(
+    vit_b12: Optional[Decimal] = Field(
         default=None, nullable=True, max_digits=6, decimal_places=3
     )
     adl: Optional[Decimal] = Field(
@@ -68,10 +40,10 @@ class ClinicData(DraftModel, table=True):
     berg: Optional[Decimal] = Field(
         default=None, nullable=True, max_digits=6, decimal_places=3
     )
-    bmi: Optional[Decimal] = Field(
+    potassium: Optional[Decimal] = Field(
         default=None, nullable=True, max_digits=6, decimal_places=3
     )
-    stress: Optional[bool] = Field(default=None, nullable=True)
+    stress: Optional[bool] = Field(default=False, nullable=True)
 
     evaluation_id: int = Field(default=None, foreign_key="evaluation.id", unique=True)
     evaluation: Optional["Evaluation"] = Relationship(back_populates="clinic_data")

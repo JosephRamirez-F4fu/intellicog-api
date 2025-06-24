@@ -24,42 +24,44 @@ def create_token(
     expire = datetime.now(timezone.utc) + timedelta(minutes=TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     to_encode.update({"token_type": token_type.value})
-
-    print(to_encode)  # Debugging line to check the payload
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def decode_token(
     token: str, SECRET_KEY: str, ALGORITHM: str, token_type: TokenType
 ) -> TokenData:
-    payload = jwt.decode(token=token, key=SECRET_KEY, algorithms=[ALGORITHM])
-    user_id: str = payload.get("sub")
-    exp = payload.get("exp")
-    jti = payload.get("jti")
-    print(token)
-    if payload.get("token_type") != token_type.value:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token type",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    if exp is None or datetime.fromtimestamp(exp, timezone.utc) < datetime.now(
-        timezone.utc
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    if user_id is None:
+    try:
+        payload = jwt.decode(token=token, key=SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        exp = payload.get("exp")
+        jti = payload.get("jti")
+        if payload.get("token_type") != token_type.value:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token type",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        if exp is None or datetime.fromtimestamp(exp, timezone.utc) < datetime.now(
+            timezone.utc
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token has expired",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    print("Decoded payload:", payload)
-
-    return TokenData(sub=user_id, jti=jti)
+    return TokenData(sub=user_id, exp=exp, jti=jti)
 
 
 def hash_password(password: str) -> str:

@@ -12,7 +12,7 @@ class Sex(PyEnum):
 
 class Patient(DraftModel, table=True):
     name: str = Field(max_length=50)
-    dni: str = Field(min_items=8, unique=True)
+    dni: str = Field(min_items=8)
     last_name: str = Field(max_length=50)
     sex: Sex = Field(sa_column=Column(SQLEnum(Sex)))
     age: Optional[int] = Field(default=None, nullable=True)
@@ -25,19 +25,11 @@ class Patient(DraftModel, table=True):
         back_populates="patient",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
     )
-    evaluations: List["Evaluation"] = Relationship(
-        back_populates="patient",
-        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
-    )
+    evaluations: List["Evaluation"] = Relationship(back_populates="patient")
 
 
 class PatientComorbilites(DraftModel, table=True):
     hipertension: Optional[bool] = Field(default=False)
-    diabetes: Optional[bool] = Field(default=False)
-    heart_disease: Optional[bool] = Field(default=False)
-    acv: Optional[bool] = Field(default=False)
-    fibromialgia: Optional[bool] = Field(default=False)
-    atherosclerosis: Optional[bool] = Field(default=False)
     patient_id: int = Field(foreign_key="patient.id", unique=True)
 
     patient: Optional[Patient] = Relationship(back_populates="comorbilites")

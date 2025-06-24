@@ -12,6 +12,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from ..core.config import config
 from fastapi import HTTPException
+from datetime import timezone
 
 
 class AuthService:
@@ -25,7 +26,7 @@ class AuthService:
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         if not verify_password(password, user.password):
-            return None
+            raise HTTPException(status_code=401, detail="Invalid password")
         return user
 
     def create_user(self, user_data: UserForCreate) -> User:
@@ -84,7 +85,11 @@ class AuthService:
             raise HTTPException(
                 status_code=400, detail="Refresh token has been revoked"
             )
-        if refresh_token.expires_at < datetime.now(timezone.utc):
+        expires_at = refresh_token.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+        if expires_at < datetime.now(timezone.utc):
             self.revoke_refresh_token(jti)
             raise HTTPException(status_code=400, detail="Refresh token has expired")
         if refresh_token.user_agent != user_agent:
@@ -105,7 +110,7 @@ class AuthService:
         self.crud.create(reset_code, PasswordResetCodes)
         self.send_email_service.send_recovery_email(email, code)
 
-    def validate_password_reset_code(
+    def confirm_recover_password(
         self, email: str, code: str
     ) -> PasswordResetCodes | None:
         user = self.get_user_by_email(email)
@@ -119,11 +124,28 @@ class AuthService:
             PasswordResetCodes.expires_at > datetime.now(timezone.utc),
         )
         reset_code = self.session.exec(statement).first()
+        print(reset_code)
         if not reset_code:
+            raise HTTPException(status_code=404, detail="Invalid or expired reset code")
+        reset_code.used = True
+        reset_code.expires_at = datetime.now(timezone.utc)
+        self.crud.update(reset_code.id, PasswordResetCodes, reset_code)
+
+    def change_password(
+        self, email: str, new_password: str, verify_new_password
+    ) -> User:
+        user = self.get_user_by_email(email)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        if not new_password:
+            raise HTTPException(status_code=400, detail="New password is required")
+        if new_password != verify_new_password:
             raise HTTPException(
-                status_code=404, detail="Invalid or expired password reset code"
+                status_code=400,
+                detail="New password and verify new password do not match",
             )
-        return reset_code
+        user.password = hash_password(new_password)
+        return self.crud.update(user.id, User, user)
 
 
 class SendEmailService:
