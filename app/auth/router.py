@@ -156,13 +156,11 @@ class EmailSend(BaseModel):
 
 @auth_router.post("/recover")
 def recover_password(email_data: EmailSend, service: auth_service_dependency):
-    try:
         service.create_recover_password(email_data.email)
         return {
             "message": "Recovery email sent successfully",
         }
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+
 
 
 class RecoverConfirm(BaseModel):

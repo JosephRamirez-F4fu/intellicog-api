@@ -14,9 +14,6 @@ app = FastAPI(
     version="1.0.0",
     root_path="/api/v1",
 )
-gtk_dll_path = r"C:\Program Files (x86)\GTK2-Runtime\bin"
-os.add_dll_directory(gtk_dll_path)
-
 env = config["ENVIRONMENT"]
 
 if env == "development":

@@ -17,6 +17,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
+from datetime import date
 
 
 class EvaluationService:
@@ -42,7 +43,7 @@ class EvaluationService:
         for existing_evaluation in existing_evaluations:
             if (
                 existing_evaluation.created_at.date()
-                == evaluation_data.created_at.date()
+                == date.today()
                 and existing_evaluation.modality == evaluation_data.modality
             ):
                 raise HTTPException(
