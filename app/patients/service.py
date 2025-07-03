@@ -2,6 +2,7 @@ from ..utils import CRUDDraft
 from .models import Patient, PatientComorbilites
 from .schemas import PatientModel
 from sqlmodel import Session, select
+from sqlalchemy.orm import selectinload
 
 
 class PatientService:
@@ -22,6 +23,7 @@ class PatientService:
             dni=patient_data.dni,
         )
         # Check if patient with the same DNI already exists
+        print(patient_data)
         existing_patient = self.get_patient_by_dni(patient_data.dni, user_id)
         if existing_patient:
             raise ValueError("Patient with this DNI already exists")
@@ -38,10 +40,13 @@ class PatientService:
     def get_patient(self, patient_id: int) -> Patient:
         return self.crud.get(patient_id, Patient)
 
-    def get_all_patients_of_user(self, user_id, skip, limit, filters) -> list[Patient]:
-        patients: Patient = self.crud.get_all_by_foreign_key(
-            user_id, Patient, "user_id"
-        )
+    def get_all_patients_of_user(self, user_id, skip, limit, filters):
+        query = (
+            select(Patient).where(Patient.user_id == user_id).join(PatientComorbilites)
+        ).options(selectinload(Patient.comorbilites))
+
+        patients: list[Patient] = self.session.exec(query).all()
+
         if not patients:
             return []
         if filters.get("full_name"):
@@ -57,14 +62,34 @@ class PatientService:
                 for patient in patients
                 if filters["dni"].lower() in patient.dni.lower()
             ]
+        # add comorbilites to the patient
+        patients_with_com = []
+        for patient in patients:
 
-        return patients[skip : skip + limit]
+            patients_with_com.append(
+                {
+                    "id": patient.id,
+                    "dni": patient.dni,
+                    "user_id": patient.user_id,
+                    "name": patient.name,
+                    "last_name": patient.last_name,
+                    "age": patient.age,
+                    "age_education": patient.age_education,
+                    "comorbilites": patient.comorbilites,
+                    "sex": patient.sex,
+                }
+            )
+        return (
+            patients_with_com[skip : skip + limit]
+            if limit
+            else patients_with_com[skip:]
+        )
 
     def update_patient(self, patient_id: int, patient_data: PatientModel) -> Patient:
         patient: Patient | None = self.crud.get(patient_id, Patient)
         if not patient:
             raise ValueError("Patient not found")
-        print(patient_id)
+        print(patient_data)
         patient_for_update = Patient(
             id=patient_id,
             user_id=patient.user_id,

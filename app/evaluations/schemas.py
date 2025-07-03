@@ -28,7 +28,7 @@ class EvaluationModel(BaseModel):
 
 
 class ClinicResultsModel(BaseModel):
-    description: str
+    description: Optional[str] = None
 
 
 class EvaluationWithPatientRead(EvaluationModel):

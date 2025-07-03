@@ -71,9 +71,18 @@ class Evaluation(DraftModel, table=True):
     modality: Modality = Field(sa_column=Column(SQLEnum(Modality)))
 
     patient: Optional[Patient] = Relationship(back_populates="evaluations")
-    clinic_data: ClinicData = Relationship(back_populates="evaluation")
-    clinic_result: "ClinicResults" = Relationship(back_populates="evaluation")
-    mri_images: Optional[MRIImage] = Relationship(back_populates="evaluation")
+    clinic_data: ClinicData = Relationship(
+        back_populates="evaluation",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
+    clinic_result: "ClinicResults" = Relationship(
+        back_populates="evaluation",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan", "uselist": False},
+    )
+    mri_images: Optional[MRIImage] = Relationship(
+        back_populates="evaluation",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan", "uselist": False},
+    )
 
 
 class ClinicResults(DraftModel, table=True):

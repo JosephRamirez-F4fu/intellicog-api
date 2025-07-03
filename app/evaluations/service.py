@@ -42,8 +42,7 @@ class EvaluationService:
         )
         for existing_evaluation in existing_evaluations:
             if (
-                existing_evaluation.created_at.date()
-                == date.today()
+                existing_evaluation.created_at.date() == date.today()
                 and existing_evaluation.modality == evaluation_data.modality
             ):
                 raise HTTPException(
@@ -115,10 +114,22 @@ class EvaluationService:
                 by_alias=True, exclude={"user_id"}
             )
             response.append(evaluation_data)
+        response.sort(key=lambda x: x["created_at"], reverse=True)
         return response
 
     def get_evaluations_by_patient(self, patient_id: int) -> list[Evaluation]:
         return self.crud.get_all_by_foreign_key(patient_id, Evaluation, "patient_id")
+
+    def get_evaluation_by_patient_with_onw_patient_results(self, patient_id: int):
+        select_query = (
+            select(Evaluation)
+            .join(Patient)
+            .where(Patient.id == patient_id)
+            .options(selectinload(Evaluation.clinic_result))
+        )
+        evaluations: list[Evaluation] = self.session.exec(select_query).all()
+        if not evaluations:
+            return []
 
     def get_evaluation(self, evaluation_id: int) -> Evaluation | None:
         return self.crud.get(evaluation_id, Evaluation)
@@ -150,10 +161,8 @@ class EvaluationService:
             evaluation_id, ClinicData, "evaluation_id"
         )
         if not clinic:
-            raise HTTPException(
-                status_code=404,
-                detail="Clinic data for this evaluation does not exist.",
-            )
+            clinic = self.create_clinic_data(evaluation_id, clinic_data)
+            return clinic
 
         clinic_data.adl = clinic_data.adl or clinic.adl
         clinic_data.iadl = clinic_data.iadl or clinic.iadl
@@ -166,6 +175,7 @@ class EvaluationService:
         return self.crud.update(clinic.id, ClinicData, clinic_data)
 
     def delete_clinic_data(self, evaluation_id: int) -> ClinicData:
+
         return self.crud.delete_by_foreign_key(
             evaluation_id, ClinicData, "evaluation_id"
         )
@@ -290,134 +300,31 @@ def traducir_enum(valor):
     return traducciones.get(str(valor), str(valor))
 
 
-def generate_evaluations_pdf(patient, evaluations) -> bytes:
-    html_template = """
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <style>
-            body {
-                font-family: 'Segoe UI', Arial, sans-serif;
-                margin: 40px 60px 40px 60px;
-                background: #fff;
-                color: #223a5e;
-                font-size: 13px;
-            }
-            .header {
-                display: flex;
-                align-items: center;
-                border-bottom: 2px solid #2176ae;
-                padding-bottom: 10px;
-                margin-bottom: 24px;
-            }
-            .logo {
-                height: 48px;
-                margin-right: 18px;
-            }
-            .app-title {
-                font-size: 22px;
-                font-weight: bold;
-                color: #2176ae;
-            }
-            .desc {
-                font-size: 14px;
-                margin-bottom: 18px;
-                color: #3a6073;
-            }
-            .patient-info {
-                background: #e3f0fa;
-                border-radius: 8px;
-                padding: 10px 18px;
-                margin-bottom: 18px;
-                box-shadow: 0 2px 6px #b3c6e0;
-                font-size: 14px;
-            }
-            .patient-info strong {
-                color: #2176ae;
-                font-size: 14px;
-            }
-            h2 {
-                color: #2176ae;
-                font-size: 18px;
-                margin-bottom: 10px;
-                margin-top: 30px;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 10px;
-                background: #fff;
-                border-radius: 8px;
-                overflow: hidden;
-                box-shadow: 0 2px 8px #b3c6e0;
-            }
-            th, td {
-                border: 1px solid #b3c6e0;
-                padding: 5px 3px;
-                text-align: left;
-                vertical-align: middle;
-                font-size: 13px;
-            }
-            th {
-                background: #2176ae;
-                color: #fff;
-                font-weight: bold;
-            }
-            tr:nth-child(even) {
-                background: #f0f6fb;
-            }
-            tr:nth-child(odd) {
-                background: #e3f0fa;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="header">
-            <img src="https://i.imgur.com/8QfQ8gk.png" class="logo" alt="Logo Intellicog">
-            <span class="app-title">Intellicog</span>
-        </div>
-        <div class="desc">
-            <strong>Intellicog</strong> es la plataforma inteligente para el análisis y seguimiento de evaluaciones cognitivas, ayudando a profesionales y familias a tomar mejores decisiones en salud mental.
-        </div>
-        <div class="patient-info">
-            <p><strong>Paciente:</strong> {{ patient.name }} {{ patient.last_name }}</p>
-            <p><strong>DNI:</strong> {{ patient.dni }}</p>
-        </div>
-        <h2>Evaluaciones Realizadas</h2>
-        <table>
-            <tr>
-                <th>#</th>
-                <th>Fecha</th>
-                <th>Modalidad</th>
-                <th>Clasificación manual</th>
-                <th>Clasificación modelo</th>
-                <th>Probabilidad modelo</th>
-            </tr>
-            {% for ev in evaluations %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ formatear_fecha(ev.created_at) }}</td>
-                <td>{{ traducir_enum(ev.modality.value) if ev.modality else '' }}</td>
-                <td>{{ traducir_enum(ev.manual_classification.value) if ev.manual_classification else '' }}</td>
-                <td>{{ traducir_enum(ev.model_classification.value) if ev.model_classification else '' }}</td>
-                <td>
-                    {% if ev.model_probability is not none %}
-                        {{ "%.1f"|format(ev.model_probability * 100) }} %
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-    </body>
-    </html>
-    """
-    # Pasar la función de traducción al contexto de Jinja2
+def generate_evaluations_pdf(patient: Patient, evaluations: list[Evaluation]) -> bytes:
+    # load HTML template
+    with open(
+        "app/evaluations/template/generate_evaluation.html", "r", encoding="utf-8"
+    ) as file:
+        html_template = file.read()
     template = Template(html_template)
+    evaluations_results = []
+    for idx, i in enumerate(evaluations):
+        if i.clinic_result and i.clinic_result.description:
+            if i.clinic_result.description != "":
+                evaluations_results.append(
+                    {
+                        "id": idx + 1,
+                        "description": i.clinic_result.description,
+                        "created_at": i.created_at,
+                    }
+                )
+
     html_content = template.render(
         patient=patient,
         evaluations=evaluations,
         traducir_enum=traducir_enum,
         formatear_fecha=formatear_fecha,
+        evaluations_results=evaluations_results,
     )
     pdf_bytes = HTML(string=html_content).write_pdf()
     return pdf_bytes
@@ -432,7 +339,6 @@ def send_pdf_report_email(email: str, pdf_bytes: bytes, patient_id: int) -> None
     if not config["EMAIL_SENDER"] or not config["EMAIL_PASSWORD"]:
         raise HTTPException(status_code=500, detail="Email configuration is not set")
 
-    # Cuerpo del correo (puedes personalizar el HTML)
     html = """
     <html>
     <body>
@@ -465,7 +371,6 @@ def formatear_fecha(fecha):
     if isinstance(fecha, datetime):
         return fecha.strftime("%m/%d/%Y")
     try:
-        # Si es string tipo "2025-06-17T01:33:04.472250"
         return fecha[:10].replace("-", "/") + " " + fecha[11:16]
     except Exception:
         return str(fecha)

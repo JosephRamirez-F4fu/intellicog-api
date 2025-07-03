@@ -1,0 +1,133 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        margin: 40px 60px 40px 60px;
+        background: #fff;
+        color: #223a5e;
+        font-size: 13px;
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        border-bottom: 2px solid #2176ae;
+        padding-bottom: 10px;
+        margin-bottom: 24px;
+      }
+      .logo {
+        height: 48px;
+        margin-right: 18px;
+      }
+      .app-title {
+        font-size: 22px;
+        font-weight: bold;
+        color: #2176ae;
+      }
+      .desc {
+        font-size: 14px;
+        margin-bottom: 18px;
+        color: #3a6073;
+      }
+      .patient-info {
+        background: #e3f0fa;
+        border-radius: 8px;
+        padding: 10px 18px;
+        margin-bottom: 18px;
+        box-shadow: 0 2px 6px #b3c6e0;
+        font-size: 14px;
+      }
+      .patient-info strong {
+        color: #2176ae;
+        font-size: 14px;
+      }
+      h2 {
+        color: #2176ae;
+        font-size: 18px;
+        margin-bottom: 10px;
+        margin-top: 30px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        background: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px #b3c6e0;
+      }
+      th,
+      td {
+        border: 1px solid #b3c6e0;
+        padding: 5px 3px;
+        text-align: left;
+        vertical-align: middle;
+        font-size: 13px;
+      }
+      th {
+        background: #2176ae;
+        color: #fff;
+        font-weight: bold;
+      }
+      tr:nth-child(even) {
+        background: #f0f6fb;
+      }
+      tr:nth-child(odd) {
+        background: #e3f0fa;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <span class="app-title">Intellicog</span>
+    </div>
+    <div class="desc">
+      <strong>Intellicog</strong> es la plataforma inteligente para el análisis
+      y seguimiento de evaluaciones cognitivas, ayudando a profesionales y
+      familias a tomar mejores decisiones en salud mental.
+    </div>
+    <div class="patient-info">
+      <p>
+        <strong>Paciente:</strong> {{ patient.name }} {{ patient.last_name }}
+      </p>
+      <p><strong>DNI:</strong> {{ patient.dni }}</p>
+    </div>
+    <h2>Evaluaciones Realizadas</h2>
+    <table>
+      <tr>
+        <th>#</th>
+        <th>Fecha</th>
+        <th>Modalidad</th>
+        <th>Detección Obtenida</th>
+        <th>Probabilidad de Detección</th>
+        <th>Observación</th>
+      </tr>
+      {% for ev in evaluations %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ formatear_fecha(ev.created_at) }}</td>
+        <td>{{ traducir_enum(ev.modality.value) if ev.modality else '' }}</td>
+        <td>
+          {{ traducir_enum(ev.model_classification.value) if
+          ev.model_classification else '' }}
+        </td>
+        <td>
+          {% if ev.model_probability is not none %} {{
+          "%.1f"|format(ev.model_probability * 100) }} % {% endif %}
+        </td>
+        <td>
+          {{ traducir_enum(ev.manual_classification.value) if
+          ev.manual_classification else '' }}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% if evaluations_results|length > 0 %}
+    <h2>Observaciones de Cada Evaluacion</h2>
+    {% endif %} {% for ev in evaluations_results %}
+    <h3>#{{ev.id}} Evaluación del {{ formatear_fecha(ev.created_at) }}</h3>
+    <p><strong>Descripción:</strong> {{ ev.description }}</p>
+    {% endfor %}
+  </body>
+</html>
