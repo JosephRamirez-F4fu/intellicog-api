@@ -29,4 +29,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 8000
 
 # ===== COMMAND =====
-CMD ["uvicorn", "app.main:app"]
+CMD ["fastapi", "run", "app/main.py", "--port", "8000"]
