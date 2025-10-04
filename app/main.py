@@ -29,7 +29,7 @@ app.mount(
 
 origins = [
     "http://localhost:4200",  # Ejemplo: frontend local
-    "https://your-production-domain.com",  # Dominio de producción
+    "https://intellicogapp-production.up.railway.app",  # Dominio de producción
 ]
 
 app.add_middleware(
