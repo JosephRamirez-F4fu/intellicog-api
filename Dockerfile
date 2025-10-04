@@ -1,5 +1,5 @@
 # ===== BASE IMAGE =====
-FROM python:3.12-slim
+FROM python:3.12.11
 
 # ===== INSTALL SYSTEM DEPENDENCIES =====
 RUN apt-get update && apt-get install -y \
