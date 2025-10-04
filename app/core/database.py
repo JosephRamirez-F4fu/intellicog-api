@@ -4,7 +4,6 @@ from typing import Annotated
 from .config import config
 
 DB_URL = f"postgresql+psycopg://{config['PGUSER']}:{config['PGPASSWORD']}@{config['PGHOST']}:{config['PGPORT']}/{config['PGDATABASE']}"
-
 engine = create_engine(DB_URL)
 
 

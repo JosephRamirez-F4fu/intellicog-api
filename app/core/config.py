@@ -2,12 +2,12 @@ from dotenv import dotenv_values
 
 config = dotenv_values(".env")
 config = {
-    "DB_HOST": config.get("DB_HOST", "localhost"),
-    "DB_PORT": config.get("DB_PORT", "5432"),
-    "DB_NAME": config.get("DB_NAME", "mydatabase"),
-    "DB_USER": config.get("DB_USER", "myuser"),
-    "DB_PASSWORD": config.get("DB_PASSWORD", "mypassword"),
-    "DB_NAME": config.get("DB_NAME", "mydatabase"),
+    "PGHOST": config.get("PGHOST", "localhost"),
+    "PGPORT": config.get("PGPORT", "5432"),
+    "PGDATABASE": config.get("PGDATABASE", "mydatabase"),
+    "PGUSER": config.get("PGUSER", "myuser"),
+    "PGPASSWORD": config.get("PGPASSWORD", "mypassword"),
+    "POSTGRES_DB": config.get("POSTGRES_DB", "mydatabase"),
     "JWT_SECRET": config.get("JWT_SECRET", "secret"),
     "REFRESH_SECRET": config.get("REFRESH_SECRET", "refresh"),
     "ENVIRONMENT": config.get("ENVIRONMENT", "development"),
