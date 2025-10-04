@@ -6,13 +6,12 @@ from typing import Optional
 
 
 class ClinicDataModel(BaseModel):
-    adl: Optional[Decimal] = None
-    iadl: Optional[Decimal] = None
+    memory: Optional[Decimal] = None
+    orient: Optional[Decimal] = None
     berg: Optional[Decimal] = None
-    vitamin_d: Optional[Decimal] = None
-    potassium: Optional[Decimal] = None
-    vit_b12: Optional[Decimal] = None
-    stress: Optional[bool] = None
+    judgment: Optional[Decimal] = None
+    commun: Optional[Decimal] = None
+    homehobb: Optional[Decimal] = None
 
 
 class MRIImageModel(BaseModel):

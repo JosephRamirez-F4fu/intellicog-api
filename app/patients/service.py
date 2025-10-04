@@ -1,5 +1,5 @@
 from ..utils import CRUDDraft
-from .models import Patient, PatientComorbilites
+from .models import Patient
 from .schemas import PatientModel
 from sqlmodel import Session, select
 from sqlalchemy.orm import selectinload
@@ -18,7 +18,6 @@ class PatientService:
             name=patient_data.name,
             last_name=patient_data.last_name,
             age=patient_data.age,
-            age_education=patient_data.age_education,
             sex=patient_data.sex,
             dni=patient_data.dni,
         )
@@ -28,22 +27,13 @@ class PatientService:
         if existing_patient:
             raise ValueError("Patient with this DNI already exists")
         patient = self.crud.create(patient, Patient)
-        self.crud.create(
-            PatientComorbilites(
-                patient_id=patient.id,
-                hipertension=patient_data.comorbilites.hipertension,
-            ),
-            PatientComorbilites,
-        )
         return patient
 
     def get_patient(self, patient_id: int) -> Patient:
         return self.crud.get(patient_id, Patient)
 
     def get_all_patients_of_user(self, user_id, skip, limit, filters):
-        query = (
-            select(Patient).where(Patient.user_id == user_id).join(PatientComorbilites)
-        ).options(selectinload(Patient.comorbilites))
+        query = select(Patient).where(Patient.user_id == user_id)
 
         patients: list[Patient] = self.session.exec(query).all()
 
@@ -65,7 +55,6 @@ class PatientService:
         # add comorbilites to the patient
         patients_with_com = []
         for patient in patients:
-
             patients_with_com.append(
                 {
                     "id": patient.id,
@@ -74,8 +63,6 @@ class PatientService:
                     "name": patient.name,
                     "last_name": patient.last_name,
                     "age": patient.age,
-                    "age_education": patient.age_education,
-                    "comorbilites": patient.comorbilites,
                     "sex": patient.sex,
                 }
             )
@@ -96,46 +83,14 @@ class PatientService:
             name=patient_data.name,
             last_name=patient_data.last_name,
             age=patient_data.age,
-            age_education=patient_data.age_education,
         )
-
-        patient_comorbilites: PatientComorbilites | None = self.crud.get_by_foreign_key(
-            patient_id, PatientComorbilites, "patient_id"
-        )
-
-        if patient_data.comorbilites.hipertension is not None:
-            patient_comorbilites.hipertension = patient_data.comorbilites.hipertension
 
         self.crud.update(patient_id, Patient, patient_for_update)
-        if patient_comorbilites.hipertension is not None:
-            self.crud.update(
-                patient_comorbilites.id, PatientComorbilites, patient_comorbilites
-            )
 
         return patient_for_update
 
     def delete_patient(self, patient_id: int) -> Patient:
         return self.crud.delete(patient_id, Patient)
-
-    def get_comorbilites_by_patient(self, patient_id: int) -> PatientComorbilites:
-        comorbolites_patient = self.crud.get_by_foreign_key(
-            patient_id, PatientComorbilites, "patient_id"
-        )
-        if not comorbolites_patient:
-            return PatientComorbilites(patient_id=patient_id)
-        return comorbolites_patient
-
-    def update_comorbilites_by_patient(
-        self, patient_id: int, comorbilites_data: PatientComorbilites
-    ) -> PatientComorbilites:
-        comorbilites_patient = self.crud.get_by_foreign_key(
-            patient_id, PatientComorbilites, "patient_id"
-        )
-        if not comorbilites_patient:
-            return self.create_comorbilites_by_patient(comorbilites_data)
-        return self.crud.update(
-            comorbilites_patient.id, PatientComorbilites, comorbilites_data
-        )
 
     def get_patient_by_dni(self, dni: str, user_id) -> Patient | None:
         if not dni:

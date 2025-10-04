@@ -14,3 +14,7 @@ def get_session():
 
 
 SessionDep = Annotated[Session, Depends(get_session)]
+
+
+def init_db():
+    SQLModel.metadata.create_all(engine)

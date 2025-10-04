@@ -21,29 +21,24 @@ class Classification(PyEnum):
     SEVERE_DEMENTIA = "Severe Dementia"
     DEMENTIA = "Dementia"
     ALZHEIMERS = "Alzheimers"
-    MCI_DEMENTIA = "MCI + DEMENTIA"
 
 
 class ClinicData(DraftModel, table=True):
-    vitamin_d: Optional[Decimal] = Field(
-        default=None, nullable=True, max_digits=6, decimal_places=3
+    memory: Optional[Decimal] = Field(
+        default=None, nullable=True, max_digits=6, decimal_places=2
     )
-    vit_b12: Optional[Decimal] = Field(
-        default=None, nullable=True, max_digits=6, decimal_places=3
+    orient: Optional[Decimal] = Field(
+        default=None, nullable=True, max_digits=6, decimal_places=2
     )
-    adl: Optional[Decimal] = Field(
-        default=None, nullable=True, max_digits=6, decimal_places=3
+    judgment: Optional[Decimal] = Field(
+        default=None, nullable=True, max_digits=6, decimal_places=2
     )
-    iadl: Optional[Decimal] = Field(
-        default=None, nullable=True, max_digits=6, decimal_places=3
+    commun: Optional[Decimal] = Field(
+        default=None, nullable=True, max_digits=6, decimal_places=2
     )
-    berg: Optional[Decimal] = Field(
-        default=None, nullable=True, max_digits=6, decimal_places=3
+    homehobb: Optional[Decimal] = Field(
+        default=None, nullable=True, max_digits=6, decimal_places=2
     )
-    potassium: Optional[Decimal] = Field(
-        default=None, nullable=True, max_digits=6, decimal_places=3
-    )
-    stress: Optional[bool] = Field(default=False, nullable=True)
 
     evaluation_id: int = Field(default=None, foreign_key="evaluation.id", unique=True)
     evaluation: Optional["Evaluation"] = Relationship(back_populates="clinic_data")

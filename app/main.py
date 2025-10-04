@@ -1,5 +1,6 @@
 from .auth.router import auth_router
 from .core.config import config
+from .core.database import init_db
 from .evaluations.router import evaluations_router
 from .patients.router import patients_router
 from .users.router import user_router
@@ -16,18 +17,15 @@ app = FastAPI(
 )
 env = config["ENVIRONMENT"]
 
-if env == "development":
-    bucket_local = config["S3_BUCKET_NAME"]
-    os.makedirs(f"app/{bucket_local}", exist_ok=True)
-    app.mount(
-        f"/{bucket_local}",
-        StaticFiles(directory=f"app/{bucket_local}"),
-        name=bucket_local,
-    )
 
+bucket_local = config["S3_BUCKET_NAME"]
+os.makedirs(f"app/{bucket_local}", exist_ok=True)
+app.mount(
+    f"/{bucket_local}",
+    StaticFiles(directory=f"app/{bucket_local}"),
+    name=bucket_local,
+)
 
-elif env == "production":
-    ...
 
 origins = [
     "http://localhost:4200",  # Ejemplo: frontend local
@@ -52,3 +50,10 @@ app.include_router(evaluations_router)
 @app.get("/")
 async def ping():
     return {"message": "Welcome to IntelliCog Management API!"}
+
+
+# on init actions here if needed
+@app.on_event("startup")
+async def startup_event():
+    print(f"Starting IntelliCog API in {env} environment")
+    init_db()

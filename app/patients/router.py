@@ -4,8 +4,8 @@ from ..auth.router import (
     current_user_dependency,
     user_service_dependency,
 )
-from .models import Patient, PatientComorbilites
-from .schemas import PatientModel, PatientComorbilitesModel
+from .models import Patient
+from .schemas import PatientModel
 from .service import PatientService
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from typing import Annotated, Optional
@@ -87,46 +87,6 @@ def delete_patient(
 ):
     patient = get_patient_by_user(tokendata, service, user_service, patient_id, request)
     return service.delete_patient(patient.id)
-
-
-@patients_router.get("/{patient_id}/comorbilites")
-def get_comorbilites_by_patient(
-    tokendata: current_user_dependency,
-    patient_id: int,
-    service: patient_service_dependency,
-    user_service: user_service_dependency,
-    request: Request,
-):
-    patient = get_patient_by_user(tokendata, service, user_service, patient_id, request)
-    return service.get_comorbilites_by_patient(patient.id)
-
-
-@patients_router.put("/{patient_id}/comorbilites")
-def update_comorbilites_by_patient(
-    tokendata: current_user_dependency,
-    patient_id: int,
-    comorbilites_data: PatientComorbilitesModel,
-    service: patient_service_dependency,
-    user_service: user_service_dependency,
-    request: Request,
-):
-    patient = get_patient_by_user(tokendata, service, user_service, patient_id, request)
-    comorbilites_data.patient_id = patient.id
-    return service.update_comorbilites_by_patient(patient.id, comorbilites_data)
-
-
-@patients_router.post("/{patient_id}/comorbilites")
-def create_comorbilites_by_patient(
-    tokendata: current_user_dependency,
-    patient_id: int,
-    comorbilites_data: PatientComorbilitesModel,
-    service: patient_service_dependency,
-    user_service: user_service_dependency,
-    request: Request,
-):
-    patient = get_patient_by_user(tokendata, service, user_service, patient_id, request)
-    comorbilites_data.patient_id = patient.id
-    return service.create_comorbilites_by_patient(comorbilites_data)
 
 
 def get_patient_by_user(
