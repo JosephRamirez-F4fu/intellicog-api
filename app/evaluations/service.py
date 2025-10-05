@@ -195,7 +195,7 @@ class EvaluationService:
 
         if config["ENVIRONMENT"] == "development":
             nombre_archivo = guardar_imagen_png(imagen, self.bucket_path)
-            url = f"http://localhost:8000/api/v1/{self.bucket_local}/{nombre_archivo}"
+            url = f"https://intellicog-api-production.up.railway.app/api/v1/{self.bucket_local}/{nombre_archivo}"
             mri_image = MRIImage(evaluation_id=evaluation_id, url=url)
             return self.crud.create(mri_image, MRIImage)
 
